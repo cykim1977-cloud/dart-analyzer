@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 
 import dart_api as dart
-import claude_analyzer as ai
+import gemini_analyzer as ai
 
 st.set_page_config(page_title="DART 공시 분석기", page_icon="📊", layout="wide")
 
@@ -15,13 +15,13 @@ st.set_page_config(page_title="DART 공시 분석기", page_icon="📊", layout=
 st.sidebar.title("⚙️ 설정")
 st.sidebar.markdown(
     "1. **DART 인증키**: [발급받기](https://opendart.fss.or.kr/) (무료)\n"
-    "2. **Claude API 키**: [발급받기](https://console.anthropic.com/)"
+    "2. **Gemini API 키**: [발급받기](https://aistudio.google.com/app/apikey) (무료, 카드 불필요)"
 )
 dart_key = st.sidebar.text_input("DART 인증키", type="password")
-claude_key = st.sidebar.text_input("Claude API 키", type="password")
+gemini_key = st.sidebar.text_input("Gemini API 키", type="password")
 model = st.sidebar.selectbox(
     "분석 모델",
-    ["claude-sonnet-5", "claude-opus-4-8", "claude-haiku-4-5-20251001"],
+    ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"],
     index=0,
 )
 include_report = st.sidebar.checkbox(
@@ -63,7 +63,7 @@ def do_search():
         st.session_state.result = None
 
 
-def _run(selected, dart_key, claude_key, model, include_report):
+def _run(selected, dart_key, gemini_key, model, include_report):
     corp_code = selected["corp_code"]
     corp_name = selected["corp_name"]
     result = {"name": corp_name}
@@ -90,7 +90,7 @@ def _run(selected, dart_key, claude_key, model, include_report):
         progress.progress(75, text="AI가 분석 중입니다...")
 
         report = ai.analyze(
-            api_key=claude_key,
+            api_key=gemini_key,
             corp_name=corp_name,
             overview_text=ai.build_overview_text(ov),
             financial_text=ai.build_financial_text(fin),
@@ -123,10 +123,10 @@ if st.session_state.companies:
     selected = options[choice]
 
     if st.button("📈 이 회사 분석하기", type="primary"):
-        if not claude_key:
-            st.warning("AI 분석을 위해 Claude API 키를 입력해주세요.")
+        if not gemini_key:
+            st.warning("AI 분석을 위해 Gemini API 키를 입력해주세요.")
         else:
-            _run(selected, dart_key, claude_key, model, include_report)
+            _run(selected, dart_key, gemini_key, model, include_report)
 
 
 # ------------------------------------------------------------------ 3) 결과 표시
