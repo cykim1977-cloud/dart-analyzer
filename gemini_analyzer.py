@@ -127,14 +127,21 @@ def analyze(
         business_text=(business_text or "정보 없음")[:12000],
         disclosures=disclosure_text or "정보 없음",
     )
+    cfg_kwargs = dict(
+        system_instruction=SYSTEM_PROMPT,
+        max_output_tokens=8192,
+        temperature=0.4,
+    )
+    # gemini-2.5 계열은 '생각(thinking)'에 토큰을 소모해 답변이 잘릴 수 있으므로 끈다.
+    if "2.5" in model:
+        try:
+            cfg_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+        except Exception:
+            pass
     resp = client.models.generate_content(
         model=model,
         contents=user_msg,
-        config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
-            max_output_tokens=2500,
-            temperature=0.4,
-        ),
+        config=types.GenerateContentConfig(**cfg_kwargs),
     )
     text = getattr(resp, "text", None)
     if text:
