@@ -8,6 +8,7 @@ import streamlit as st
 
 import dart_api as dart
 import gemini_analyzer as ai
+import export_utils as ex
 
 st.set_page_config(page_title="DART 공시 분석기", page_icon="📊", layout="wide")
 
@@ -184,13 +185,41 @@ if res:
             st.dataframe(dl_df, use_container_width=True, hide_index=True)
 
     # 다운로드
+    st.subheader("📥 리포트 저장")
     md = f"# {res['name']} 분석 리포트\n\n{res.get('report','')}"
-    st.download_button(
-        "📥 리포트 마크다운으로 저장",
-        md,
-        file_name=f"{res['name']}_분석리포트.md",
-        mime="text/markdown",
-    )
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.download_button(
+            "📝 마크다운 (.md)",
+            md,
+            file_name=f"{res['name']}_분석리포트.md",
+            mime="text/markdown",
+            use_container_width=True,
+        )
+    with c2:
+        try:
+            docx_bytes = ex.build_docx(res)
+            st.download_button(
+                "📄 Word (.docx)",
+                docx_bytes,
+                file_name=f"{res['name']}_분석리포트.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                use_container_width=True,
+            )
+        except Exception as e:
+            st.caption(f"Word 생성 오류: {e}")
+    with c3:
+        try:
+            pptx_bytes = ex.build_pptx(res)
+            st.download_button(
+                "📊 PPT (.pptx)",
+                pptx_bytes,
+                file_name=f"{res['name']}_분석리포트.pptx",
+                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                use_container_width=True,
+            )
+        except Exception as e:
+            st.caption(f"PPT 생성 오류: {e}")
 
 st.divider()
 st.caption(
